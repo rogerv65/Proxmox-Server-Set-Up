@@ -17,5 +17,62 @@ I had an old laptop lying around that was going to get tossed, but made the deci
 
 ## Configuring Proxmox
 One downside is that Proxmox requires that the laptop remains open, and the screen does not turn off. Luckily we can circumvent these issues by modifying certain settings.
-### Settings 1: Preventing Proxmox from going into Sleep Mode
-1) Log into Proxmox from the host machine (my laptop) and enter the following command 
+### Setting 1: Preventing Proxmox from going into Sleep Mode
+1) Log into Proxmox from the host machine (my laptop) and enter the following command:
+
+    `nano /etc/systemd/logind.conf`
+   
+2) Next, remove the comments and set the following values to ignore:
+   
+    `HandleLidSwitch=suspend` -> `HandleLidSwitch=ignore`
+   
+    `….ExternealPower=suspend` -> `….ExternealPower=ignore`
+   
+    `….Docked=ignore`
+   
+4) Next, remove the comments for the following:
+
+    `IdleAction=ignore`
+
+    `IdleActionSec=30min`
+   
+5) Change the value of `IdleActionSec` to **0**
+6) Save these changes, and reset the system with the following command:
+
+    `systemctl restart systemd-logind`
+   
+7) With all these settings, the laptop can now be closed!
+
+## Setting 2: Turning off the Backlight
+1) Enter the following command:
+
+    `nano /etc/default/grub`
+
+2) Locate the following:
+
+`GRUB_CMDLINE_LINUX_DEFAULT=”quiet”`
+
+4) Within the quotation, but after `quiet` write the following:
+
+    `“... consoleblank=30”`
+
+5) Save the changes and upgrade grub with the following:
+
+    `Update-group`
+
+6) Then reboot the server:
+
+    `Reboot`
+   
+7) With all this, my laptop can now mimic a server and I don’t need to access unless required.
+
+### Setting 3: Update Proxmox
+1) Since I’ll only be using Proxmox for non-production use, navigate to the desired node, then click:
+
+    *updates>repositories.*
+   
+2) From here disable all the enterprise repo’s, and add both PVE and Ceph no subscription repo’s. Move back to updates and click *refresh*, then *upgrade*.
+3) Now we get updates without needing to pay for a subscription.
+
+
+
